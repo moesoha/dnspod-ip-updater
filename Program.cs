@@ -62,12 +62,24 @@ namespace DNSPodUpdater{
 			Console.WriteLine("SubDomain ID:"+recordIds);
 
 			while(keepRunning){
-				string ip=await getIP();
-				Console.WriteLine("Current IP: "+ip);
-				if(ip!=lastIP){
-					Console.WriteLine("IP is different from last check("+lastIP+")! Updating Records...");
-					Console.WriteLine(await BatchUpdateIP(recordIds,ip));
-					lastIP=ip;
+				string ip="";
+				bool ok=true;
+				try{
+					ip=await getIP();
+				}catch{
+					ok=false;
+					Console.WriteLine("Error Caught while get ip!");
+				}
+				if(ok && (ip!=lastIP)){
+					Console.WriteLine("IP("+ip+") is different from last check("+lastIP+")! Updating Records...");
+					JObject job=await BatchUpdateIP(recordIds,ip);
+					if(job["status"]["code"].Value<string>()=="1"){
+						Console.WriteLine("Updating job was added. JobID is "+job["job_id"].Value<string>());
+						lastIP=ip;
+					}else{
+						Console.WriteLine("Job was not added:"+job["status"]["message"].Value<string>());
+					}
+					
 				}
 				System.Threading.Thread.Sleep(10000);
 			}
@@ -123,7 +135,7 @@ namespace DNSPodUpdater{
 			}));
 		}
 
-		private static Task<string> BatchUpdateIP(string recordIds,string ip){
+		private static Task<JObject> BatchUpdateIP(string recordIds,string ip){
 			return(Task.Run(()=>{
 				using(var _client=new HttpClient(new HttpClientHandler{AutomaticDecompression=DecompressionMethods.GZip|DecompressionMethods.Deflate},false)){
 					_client.BaseAddress=new Uri("https://dnsapi.cn/");
@@ -140,11 +152,7 @@ namespace DNSPodUpdater{
 					string json=response.Content.ReadAsStringAsync().Result;
 					JObject responseJson=JObject.Parse(json);
 					//Console.WriteLine(json);
-					if(responseJson["status"]["code"].Value<string>()=="1"){
-						return(responseJson["status"]["message"].Value<string>());
-					}else{
-						throw new System.Exception(responseJson["status"]["message"].Value<string>());
-					}
+					return(responseJson);
 				}
 			}));
 		}
@@ -165,10 +173,16 @@ namespace DNSPodUpdater{
 					string json=response.Content.ReadAsStringAsync().Result;
 					JObject responseJson=JObject.Parse(json);
 					//Console.WriteLine(json);
-					if(responseJson["status"]["code"].Value<string>()=="1"){
-						return responseJson["records"].ToObject<JArray>();
-					}else{
-						throw new System.Exception(responseJson["status"]["message"].Value<string>());
+					switch(responseJson["status"]["code"].Value<string>()){
+						case "1":
+							return responseJson["records"].ToObject<JArray>();
+							break;
+						case "10":
+							return new JArray();
+							break;
+						default:
+							throw new System.Exception(responseJson["status"]["message"].Value<string>());
+							break;
 					}
 				}
 			}));
