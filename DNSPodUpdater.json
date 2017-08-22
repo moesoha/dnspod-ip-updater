@@ -1,0 +1,8 @@
+{
+	"token": "ID,Token",
+	"domain": "contoso.com",
+	"subdomain": [
+		"ddns",
+		"hello"
+	]
+}
