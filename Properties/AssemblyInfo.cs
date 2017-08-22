@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("DNSPodUpdater")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("DNSPod IP Updater")]
+[assembly: AssemblyDescription("Update A record in DNSPod")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("DNSPodUpdater")]
-[assembly: AssemblyCopyright("Copyright ©  2017")]
+[assembly: AssemblyCompany("Tianhai InfoTech, http://tianhai.info.")]
+[assembly: AssemblyProduct("DNSPod IP Updater")]
+[assembly: AssemblyCopyright("Copyright © Tianhai I.T. 2017")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
