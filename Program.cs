@@ -48,7 +48,9 @@ namespace DNSPodUpdater
 				e.Cancel = true;
 				keepRunning = false;
 			};
-			while(keepRunning) { }
+			while(keepRunning) { 
+				System.Threading.Thread.Sleep(23333);
+			}
 			Console.WriteLine("Bye!");
 		}
 
