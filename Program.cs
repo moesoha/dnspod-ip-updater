@@ -49,7 +49,8 @@ namespace DNSPodUpdater
 				e.Cancel = true;
 				keepRunning = false;
 			};
-			while(keepRunning) { 
+			while(keepRunning)
+			{
 				System.Threading.Thread.Sleep(23333);
 			}
 			Console.WriteLine("Bye!");
@@ -78,23 +79,24 @@ namespace DNSPodUpdater
 				try
 				{
 					ip = await getIPViaTCP();
-				} catch
+					Console.WriteLine(("[" + DateTime.Now.ToLocalTime().ToString() + "] ") + "Got current IP: " + ip);
+				} catch(Exception e)
 				{
 					ok = false;
-					Console.WriteLine(ip);
-					Console.WriteLine(("["+DateTime.Now.ToLocalTime().ToString()+"] ")+"Error caught while getting current ip!");
+					Console.WriteLine(e);
+					Console.WriteLine(("[" + DateTime.Now.ToLocalTime().ToString() + "] ") + "Error caught while getting current ip!");
 				}
-				if(ok && (ip != lastIP))
+				if(ok && (ip != "") && (ip != lastIP))
 				{
-					Console.WriteLine(("["+DateTime.Now.ToLocalTime().ToString()+"] ")+"IP(" + ip + ") is different from last check(" + lastIP + ")! Updating Records...");
+					Console.WriteLine(("[" + DateTime.Now.ToLocalTime().ToString() + "] ") + "IP(" + ip + ") is different from last check(" + lastIP + ")! Updating Records...");
 					JObject job = await BatchUpdateIP(recordIds,ip);
 					if(job["status"]["code"].Value<string>() == "1")
 					{
-						Console.WriteLine(("["+DateTime.Now.ToLocalTime().ToString()+"] ")+"Updating job was added. JobID is " + job["job_id"].Value<string>());
+						Console.WriteLine(("[" + DateTime.Now.ToLocalTime().ToString() + "] ") + "Updating job was added. JobID is " + job["job_id"].Value<string>());
 						lastIP = ip;
 					} else
 					{
-						Console.WriteLine(("["+DateTime.Now.ToLocalTime().ToString()+"] ")+"Job was not added:" + job["status"]["message"].Value<string>());
+						Console.WriteLine(("[" + DateTime.Now.ToLocalTime().ToString() + "] ") + "Job was not added:" + job["status"]["message"].Value<string>());
 					}
 
 				}
@@ -124,7 +126,7 @@ namespace DNSPodUpdater
 			return (Task.Run(() => {
 				using(var _client = new HttpClient(new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate },false))
 				{
-					_client.DefaultRequestHeaders.Add("User-Agent", "DNSPod_IP_Updater/1.0");
+					_client.DefaultRequestHeaders.Add("User-Agent","DNSPod_IP_Updater/1.0");
 					HttpResponseMessage response = _client.GetAsync("http://ifconfig.me/ip").Result;
 					response.EnsureSuccessStatusCode();
 					return (response.Content.ReadAsStringAsync().Result.Trim());
@@ -136,13 +138,18 @@ namespace DNSPodUpdater
 		{
 			return (Task.Run(() => {
 				string ip;
-				TcpClient client=new TcpClient();
-				try{
+				TcpClient client = new TcpClient();
+				try
+				{
 					client.Connect("ns1.dnspod.net",0x1a0a);
 					byte[] buffer = new byte[0x200];
-					int count = client.GetStream().Read(buffer, 0, 0x200);
-					ip = Encoding.ASCII.GetString(buffer, 0, count);
-				}finally{
+					int count = client.GetStream().Read(buffer,0,0x200);
+					ip = Encoding.ASCII.GetString(buffer,0,count);
+				} catch(Exception e)
+				{
+					throw e;
+				} finally
+				{
 					client.Close();
 				}
 				return ip;
